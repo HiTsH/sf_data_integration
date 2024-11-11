@@ -1,0 +1,11 @@
+# Salesforce API wrapper for Python
+simple-salesforce==1.11.4
+
+# Data processing and manipulation library
+pandas==2.1.1
+
+# YAML configuration file support
+PyYAML==6.0
+
+# Logging and testing utilities
+pytest==7.4.0

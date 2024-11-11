@@ -1,35 +1,54 @@
-from sf_data_integration import SalesforceConnector, DataIntegrator, DataTracker, setup_logger
+import os
+from sf_data_integration.logger import setup_logger
+from sf_data_integration.connector import SalesforceConnector
+from sf_data_integration.file_connector import FileConnector
+from sf_data_integration.mapper import DataMapper
+from sf_data_integration.tracker import DataTracker
+from sf_data_integration.batch_processor import BatchProcessor
+from sf_data_integration.integrator import DataIntegrator
 
-def run_integration():
-    project_name = "salesforce_project"
-    logger = setup_logger(project_name)
+# Configure logger for the example run
+logger = setup_logger("sf_data_integration_example", log_dir="log")
 
-    sf_credentials = {
-        "username": "your_username",
-        "password": "your_password",
-        "security_token": "your_security_token"
-    }
-    source_files = ["data/source_file_1.csv"]
-    object_name = "Account"
+# Salesforce connection details (replace with environment variables or secure storage)
+username = os.getenv("SALESFORCE_USERNAME", "your_username")
+password = os.getenv("SALESFORCE_PASSWORD", "your_password")
+security_token = os.getenv("SALESFORCE_SECURITY_TOKEN", "your_security_token")
 
-    sf_conn = SalesforceConnector(**sf_credentials, logger=logger)
-    integrator = DataIntegrator(source_files)
-    tracker = DataTracker(f"{project_name}_tracking.csv")
+# Initialize Salesforce connector
+sf_connector = SalesforceConnector(username, password, security_token, logger)
 
-    data = integrator.load_data()
-    cleaned_data = integrator.clean_data(data)
-    transformed_data = integrator.transform_data(cleaned_data)
+# Initialize File connector for CSV data source
+file_connector = FileConnector("path/to/your/data.csv", logger)
 
-    new_data = []
-    for record in transformed_data:
-        record_hash = tracker.generate_hash(record)
-        if not tracker.is_migrated(record_hash):
-            new_data.append(record)
-            tracker.track_migration(record_hash)
+# Initialize Data Mapper and Tracker for data mapping and tracking
+data_mapper = DataMapper()
+data_tracker = DataTracker(tracking_file="migration_tracking.csv")
 
-    if new_data:
-        sf_conn.insert_records(object_name, new_data)
-        tracker.save_tracking()
+# Initialize Batch Processor to handle batch data processing
+batch_processor = BatchProcessor(batch_size=100)
 
-if __name__ == "__main__":
-    run_integration()
+# Initialize Data Integrator with all components
+data_integrator = DataIntegrator(
+    sf_connector=sf_connector,
+    data_mapper=data_mapper,
+    data_tracker=data_tracker,
+    batch_processor=batch_processor,
+    logger=logger
+)
+
+# Define the data source configuration for file-based migration
+data_source_config = {
+    "file_path": "path/to/your/data.csv",
+}
+
+# Run migration from CSV file source to Salesforce "Contact" object
+data_integrator.run_migration(
+    source="File",
+    object_name="source_contact",      # This is the source data identifier; e.g., CSV headers
+    destination_object="Contact",      # Destination object in Salesforce
+    data_source_config=data_source_config
+)
+
+# Log completion
+logger.info("Example data migration from CSV to Salesforce completed successfully.")

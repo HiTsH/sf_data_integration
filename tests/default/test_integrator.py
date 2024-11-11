@@ -1,40 +1,21 @@
-import pandas as pd
 import pytest
-from sf_data_integration import DataIntegrator
+from sf_data_integration.integrator import DataIntegrator
+from sf_data_integration.connector import SalesforceConnector
+from sf_data_integration.mapper import DataMapper
+from sf_data_integration.tracker import DataTracker
+from sf_data_integration.batch_processor import BatchProcessor
+import logging
 
-def test_load_data():
-    """
-    Test loading data from a sample CSV file.
-    """
-    integrator = DataIntegrator(sources=["data/sample.csv"])
-    data = integrator.load_data()
+def test_data_integrator_init():
+    logger = logging.getLogger("test")
+    sf_connector = SalesforceConnector("username", "password", "token", logger)
+    data_mapper = DataMapper()
+    data_tracker = DataTracker()
+    batch_processor = BatchProcessor()
     
-    assert not data.empty, "Loaded data is empty."
-    assert isinstance(data, pd.DataFrame), "Loaded data is not a DataFrame."
-
-def test_clean_data():
-    """
-    Test cleaning of the loaded data.
-    """
-    integrator = DataIntegrator(sources=["data/sample.csv"])
-    data = pd.DataFrame({
-        "required_column": [1, None, 2],
-        "duplicated_column": [1, 1, 2]
-    })
-    cleaned_data = integrator.clean_data(data)
-    
-    # Check that data has no missing required values and duplicates are removed
-    assert cleaned_data["required_column"].isna().sum() == 0, "There are NaN values in required columns."
-    assert cleaned_data.duplicated().sum() == 0, "Duplicates are not removed."
-
-def test_transform_data():
-    """
-    Test transforming the data for Salesforce compatibility.
-    """
-    integrator = DataIntegrator(sources=[])
-    data = pd.DataFrame({"OldColumnName": ["value1", "value2"]})
-    transformed_data = integrator.transform_data(data)
-    
-    # Check transformation result
-    assert isinstance(transformed_data, list), "Transformed data is not a list."
-    assert all("NewColumnName" in record for record in transformed_data), "Column renaming failed."
+    integrator = DataIntegrator(sf_connector, data_mapper, data_tracker, batch_processor, logger)
+    assert integrator.sf_connector == sf_connector
+    assert integrator.data_mapper == data_mapper
+    assert integrator.data_tracker == data_tracker
+    assert integrator.batch_processor == batch_processor
+    assert integrator.logger == logger
