@@ -1,54 +1,34 @@
-import os
-from sf_data_integration.logger import setup_logger
 from sf_data_integration.connector import SalesforceConnector
-from sf_data_integration.file_connector import FileConnector
+from sf_data_integration.data_cloud_connector import DataCloudConnector
+from sf_data_integration.integrator import DataIntegrator
+from sf_data_integration.logger import setup_logger
 from sf_data_integration.mapper import DataMapper
 from sf_data_integration.tracker import DataTracker
 from sf_data_integration.batch_processor import BatchProcessor
-from sf_data_integration.integrator import DataIntegrator
+from sf_data_integration.file_connector import FileConnector
 
-# Configure logger for the example run
-logger = setup_logger("sf_data_integration_example", log_dir="log")
+# Setup logger
+logger = setup_logger("sf_data_integration_project", log_dir="log", compliance_mode=True)
 
-# Salesforce connection details (replace with environment variables or secure storage)
-username = os.getenv("SALESFORCE_USERNAME", "your_username")
-password = os.getenv("SALESFORCE_PASSWORD", "your_password")
-security_token = os.getenv("SALESFORCE_SECURITY_TOKEN", "your_security_token")
+# Initialize connectors and components
+sf_connector = SalesforceConnector(access_token="YOUR_ACCESS_TOKEN", instance_url="https://instance.salesforce.com", logger=logger)
+data_cloud_connector = DataCloudConnector(access_token="YOUR_ACCESS_TOKEN", instance_url="https://instance.salesforce.com", logger=logger)
+data_mapper = DataMapper("mapping_config.yaml")
+data_tracker = DataTracker()
+batch_processor = BatchProcessor(batch_size=200)
 
-# Initialize Salesforce connector
-sf_connector = SalesforceConnector(username, password, security_token, logger)
-
-# Initialize File connector for CSV data source
-file_connector = FileConnector("path/to/your/data.csv", logger)
-
-# Initialize Data Mapper and Tracker for data mapping and tracking
-data_mapper = DataMapper()
-data_tracker = DataTracker(tracking_file="migration_tracking.csv")
-
-# Initialize Batch Processor to handle batch data processing
-batch_processor = BatchProcessor(batch_size=100)
-
-# Initialize Data Integrator with all components
-data_integrator = DataIntegrator(
+# Initialize DataIntegrator
+integrator = DataIntegrator(
     sf_connector=sf_connector,
     data_mapper=data_mapper,
     data_tracker=data_tracker,
     batch_processor=batch_processor,
+    data_cloud_connector=data_cloud_connector,
     logger=logger
 )
 
-# Define the data source configuration for file-based migration
-data_source_config = {
-    "file_path": "path/to/your/data.csv",
-}
+# Run data migration from file to Salesforce
+file_connector = FileConnector(file_path="path/to/data.csv", logger=logger)
+data_source_config = {"file_path": "path/to/data.csv", "segment_id": "12345"}
 
-# Run migration from CSV file source to Salesforce "Contact" object
-data_integrator.run_migration(
-    source="File",
-    object_name="source_contact",      # This is the source data identifier; e.g., CSV headers
-    destination_object="Contact",      # Destination object in Salesforce
-    data_source_config=data_source_config
-)
-
-# Log completion
-logger.info("Example data migration from CSV to Salesforce completed successfully.")
+integrator.run_migration(source="File", object_name="Contact", destination_object="Contact", data_source_config=data_source_config, activate_segment=True)

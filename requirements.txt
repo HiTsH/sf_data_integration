@@ -9,3 +9,32 @@ PyYAML==6.0
 
 # Logging and testing utilities
 pytest==7.4.0
+
+# For environment variable management (if used in the package for config handling)
+python-dotenv==1.0.0
+
+# Salesforce Data Cloud specific dependencies (for compatibility with Salesforce Data Cloud API and services)
+requests==2.28.2  # For making HTTP requests, especially with Salesforce REST API
+
+# For AWS / Google Cloud integrations (if the package includes connectors to cloud platforms)
+boto3==1.26.8   # For AWS SDK, if applicable
+google-cloud==0.34.0  # For Google Cloud SDK, if applicable
+
+# For database connectivity (SQL or NoSQL)
+sqlalchemy==2.1.0  # For database connections and ORM capabilities
+psycopg2==2.9.3    # PostgreSQL database connector (if relevant)
+
+# Hashing and cryptography utilities
+hashlib==0.2  # If you are performing custom hashing for data tracking
+
+# For batch processing and parallel processing
+concurrent.futures==3.8.1  # For managing batch jobs (if you're using parallelism or asyncio)
+
+# Data migrations and transformation (if applicable)
+pyodbc==4.0.32  # For ODBC connections (SQL Server or other databases)
+
+# For file handling, especially large file processing
+openpyxl==3.1.1  # For working with Excel files (if the project deals with Excel)
+
+# Optional - for advanced logging and monitoring
+loguru==0.6.0  # If additional logging or monitoring features are needed

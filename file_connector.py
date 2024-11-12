@@ -1,33 +1,30 @@
-import pandas as pd
-from typing import List, Dict, Any
-import logging
+from sf_data_integration.logger import setup_logger
+import csv
 
 class FileConnector:
-    """
-    Reads data from file sources, such as CSV or Excel.
-    """
-
-    def __init__(self, file_path: str, logger: logging.Logger):
-        """
-        Initializes FileConnector.
-
-        :param file_path: Path to the file.
-        :param logger: Logger instance for recording events.
-        """
+    def __init__(self, file_path):
         self.file_path = file_path
-        self.logger = logger
-        self.logger.info(f"FileConnector initialized for file: {file_path}")
+        self.logger = setup_logger("file_connector", log_dir="sf_data_integration/logs")
 
-    def retrieve_data(self) -> List[Dict[str, Any]]:
-        """
-        Reads data from a file into a list of dictionaries.
-
-        :return: List of records.
-        """
-        self.logger.info(f"Reading data from file: {self.file_path}")
+    def read_data(self):
+        """Read data from a CSV file."""
         try:
-            df = pd.read_csv(self.file_path)
-            return df.to_dict(orient="records")
+            with open(self.file_path, mode='r') as file:
+                data = list(csv.DictReader(file))
+                self.logger.info(f"Read {len(data)} records from file.")
+                return data
         except Exception as e:
-            self.logger.error(f"Failed to read data from file: {e}")
-            return []
+            self.logger.error(f"Error reading data from file: {e}")
+            raise
+
+    def write_data(self, data):
+        """Write mapped data to a CSV file."""
+        try:
+            with open(self.file_path, mode='w', newline='') as file:
+                writer = csv.DictWriter(file, fieldnames=data[0].keys())
+                writer.writeheader()
+                writer.writerows(data)
+                self.logger.info(f"Written {len(data)} records to file.")
+        except Exception as e:
+            self.logger.error(f"Error writing data to file: {e}")
+            raise

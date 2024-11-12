@@ -1,32 +1,33 @@
-from typing import List, Dict, Any
-import logging
+from sf_data_integration.logger import setup_logger
+from sf_data_integration.mapper import DataMapper
 
 class CRMConnector:
-    """
-    CRMConnector handles data retrieval from various CRM systems, allowing integration with Salesforce.
-    """
+    def __init__(self, crm_client, target_system, mapping_file='sf_data_integration/mapping_config.yaml'):
+        self.crm_client = crm_client
+        self.target_system = target_system
+        self.mapping_file = mapping_file
+        self.logger = setup_logger("crm_connector", log_dir="sf_data_integration/logs")
+        self.mapper = DataMapper(self.mapping_file)
 
-    def __init__(self, crm_name: str, connection_params: Dict[str, Any], logger: logging.Logger):
-        """
-        Initialize a connection to a specified CRM system.
+    def fetch_data(self):
+        """Fetch data from CRM."""
+        data = self.crm_client.get_data()
+        self.logger.info(f"Fetched {len(data)} records from CRM system.")
+        return data
 
-        :param crm_name: Name of the CRM system (e.g., 'HubSpot', 'Zoho').
-        :param connection_params: Connection parameters (e.g., API key, credentials).
-        :param logger: Logger instance for event tracking.
-        """
-        self.crm_name = crm_name
-        self.connection_params = connection_params
-        self.logger = logger
-        self.logger.info(f"Connected to CRM: {crm_name}.")
+    def map_data(self, data):
+        """Map CRM data to target system format."""
+        try:
+            mapped_data = self.mapper.map_data(data, self.target_system)
+            self.logger.info(f"Mapped {len(mapped_data)} records to target system format.")
+            return mapped_data
+        except Exception as e:
+            self.logger.error(f"Error during mapping: {e}")
+            raise
 
-    def retrieve_data(self, object_name: str, fields: List[str] = None) -> List[Dict[str, Any]]:
-        """
-        Retrieve data from the specified CRM system.
-
-        :param object_name: The type of record to retrieve (e.g., 'contacts', 'deals').
-        :param fields: Fields to retrieve for each record.
-        :return: List of records as dictionaries.
-        """
-        # Placeholder code; actual implementation varies per CRM.
-        self.logger.info(f"Retrieving data for {object_name} from {self.crm_name}.")
-        return [{"field1": "value1", "field2": "value2"}]  # Example data structure
+    def migrate(self):
+        """Perform the migration of CRM data to the target system."""
+        data = self.fetch_data()
+        mapped_data = self.map_data(data)
+        self.target_system.insert_data(mapped_data)
+        self.logger.info("CRM data migration completed.")

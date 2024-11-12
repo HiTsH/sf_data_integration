@@ -1,123 +1,196 @@
 # sf_data_integration
 
-`sf_data_integration` is a Python package designed to facilitate data migration and integration from various sources (such as files, databases, and CRM systems) into Salesforce. It supports data retrieval, mapping, batching, logging, and tracking of records to ensure efficient and reliable data integration.
+`sf_data_integration` is a Python package designed to streamline the process of integrating and migrating data from various sources into Salesforce and Salesforce Data Cloud. The package supports integration with CRM systems, databases, files, and more, offering a comprehensive set of tools for seamless data migration.
 
 ## Features
 
-- **Multi-Source Integration**: Retrieve data from CSV files, databases, and CRM systems.
-- **Data Mapping**: Map fields from the source data to Salesforce-compatible fields using a customizable configuration.
-- **Batch Processing**: Split data into manageable batches for efficient insertion.
-- **Tracking and Logging**: Track migrated records to avoid duplication, with detailed logging for monitoring progress and troubleshooting.
-- **Salesforce Integration**: Insert data into Salesforce using the Bulk API.
-
-## Project Structure
-
-- `connector.py`: Connects to Salesforce and handles data insertion.
-- `crm_connector.py`: Retrieves data from supported CRM systems.
-- `file_connector.py`: Reads data from CSV files.
-- `db_connector.py`: Connects to databases and executes SQL queries to retrieve data.
-- `integrator.py`: Coordinates the end-to-end data integration process.
-- `mapper.py`: Maps data fields from the source format to Salesforce-compatible fields.
-- `tracker.py`: Tracks migrated records to prevent duplication.
-- `batch_processor.py`: Splits data into batches for efficient processing.
-- `logger.py`: Configures and manages logging for the package.
-- `mapping_config.yaml`: Configurable mappings for fields between source data and Salesforce.
-- `examples/example.py`: Example script demonstrating how to use the package.
+- **Salesforce Integration**: Easily connect to Salesforce and perform data migration tasks.
+- **Salesforce Data Cloud Integration**: Full support for Salesforce Data Cloud, allowing data to be migrated, processed, and managed efficiently.
+- **Support for Various Data Sources**: Integrates data from CRMs, databases, and files like CSV, Excel, and others.
+- **Batch Processing**: Efficiently process large datasets in batches.
+- **Data Tracking**: Use hashes to track data migration status and ensure the integrity of the migration process.
+- **Logging**: Detailed logging to monitor the status of the integration process.
+- **Customizable Mappings**: Map data from source systems to Salesforce using flexible mapping configurations.
 
 ## Installation
 
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/yourusername/sf_data_integration.git
-   cd sf_data_integration
-   ```
-2. **Install Dependencies**
-   pip install -r requirements.txt
+To install the `sf_data_integration` package, you can use `pip`:
 
-3. **Environment Variables**
-   Set environment variables for Salesforce credentials:
-   export SALESFORCE_USERNAME='your_username'
-   export SALESFORCE_PASSWORD='your_password'
-   export SALESFORCE_SECURITY_TOKEN='your_security_token'
+```bash
+pip install sf_data_integration
+```
+
+Alternatively, you can install it directly from the repository:
+
+```bash
+git clone https://github.com/yourusername/sf_data_integration.git
+cd sf_data_integration
+pip install .
+```
+
+## Requirements
+
+Python 3.6 or higher
+The following libraries are required:
+pandas==2.1.1
+simple-salesforce==1.11.4
+pytest==7.4.0
+PyYAML==6.0
+requests==2.28.2
+python-dotenv==1.0.0
+boto3==1.26.8
+google-cloud==0.34.0
+sqlalchemy==2.1.0
+psycopg2==2.9.3
+openpyxl==3.1.1
+loguru==0.6.0
+These dependencies are listed in requirements.txt, and you can install them via:
+
+```bash
+pip install -r requirements.txt
+```
 
 ## Configuration
 
-Mapping Configuration
-Define field mappings between source data fields and Salesforce fields in mapping_config.yaml. Each Salesforce object (e.g., Account, Contact) can have a customized mapping configuration. For example:
-Contact:
-source_name: Name
-source_email: Email
-source_phone: Phone
-source_address: MailingAddress
+Before using the package, you may need to configure the following:
+
+1. **Salesforce Credentials:** Use environment variables or a .env file to store your Salesforce credentials. Here is an example of the .env file:
+
+```bash
+SF_USERNAME=your_salesforce_username
+SF_PASSWORD=your_salesforce_password
+SF_SECURITY_TOKEN=your_salesforce_security_token
+```
+
+2. **Mapping Configuration:** Use the mapping_config.yaml file to define data mappings between your source and Salesforce fields. Below is an example of the configuration:
+
+```yaml
+mappings:
+  crm_to_sf:
+    - source_field: "crm_name"
+      destination_field: "Salesforce_Account_Name"
+    - source_field: "crm_email"
+      destination_field: "Salesforce_Contact_Email"
+  db_to_sf:
+    - source_field: "db_field_1"
+      destination_field: "Salesforce_Field_1"
+```
+
+This configuration can be adjusted according to your specific data structure and Salesforce schema.
 
 ## Usage
 
-Here’s a simple example of how to use sf_data_integration to migrate data from a CSV file to Salesforce.
+### Salesforce Integration
 
-import os
-from sf_data_integration.logger import setup_logger
-from sf_data_integration.connector import SalesforceConnector
-from sf_data_integration.file_connector import FileConnector
-from sf_data_integration.mapper import DataMapper
-from sf_data_integration.tracker import DataTracker
-from sf_data_integration.batch_processor import BatchProcessor
-from sf_data_integration.integrator import DataIntegrator
+To connect to Salesforce and upload data, you can use the SalesforceConnector class. Here's an example:
 
-#Setup logger
-logger = setup_logger("sf_data_integration_example", log_dir="log")
+```python
+from sf_data_integration import SalesforceConnector
 
-#Initialize Salesforce connector with environment credentials
-sf_connector = SalesforceConnector(
-os.getenv("SALESFORCE_USERNAME"),
-os.getenv("SALESFORCE_PASSWORD"),
-os.getenv("SALESFORCE_SECURITY_TOKEN"),
-logger
-)
+# Initialize the connector
+connector = SalesforceConnector()
 
-#Initialize file connector for CSV data
-file_connector = FileConnector("path/to/data.csv", logger)
+# Fetch data from Salesforce
+sf_data = connector.get_data("SELECT Id, Name FROM Account")
 
-#Initialize data mapper, tracker, and batch processor
-data_mapper = DataMapper()
-data_tracker = DataTracker("migration_tracking.csv")
+# Upload data to Salesforce
+connector.upload_data("Account", sf_data)
+```
+
+### CRM Integration
+
+If you're integrating data from a CRM system (e.g., Salesforce, HubSpot), you can use the CRMConnector. Example:
+
+```python
+from sf_data_integration import CRMConnector
+
+# Initialize CRM connector
+crm_connector = CRMConnector(crm_type="Salesforce")
+
+# Fetch CRM data
+crm_data = crm_connector.get_data("SELECT Id, Name FROM Lead")
+
+# Process and map data to Salesforce
+crm_connector.upload_data_to_salesforce(crm_data)
+```
+
+### Data Cloud Integration
+
+For integrating with Salesforce Data Cloud, you can use the DataCloudConnector:
+
+```python
+from sf_data_integration import DataCloudConnector
+
+# Initialize Data Cloud connector
+data_cloud_connector = DataCloudConnector()
+
+# Upload data to Salesforce Data Cloud
+data_cloud_connector.upload_data(data)
+```
+
+### Data Processing in Batches
+
+Use BatchProcessor to handle large datasets in manageable chunks:
+
+```python
+from sf_data_integration import BatchProcessor
+
+# Initialize the batch processor
 batch_processor = BatchProcessor(batch_size=100)
 
-#Initialize data integrator
-data_integrator = DataIntegrator(
-sf_connector=sf_connector,
-data_mapper=data_mapper,
-data_tracker=data_tracker,
-batch_processor=batch_processor,
-logger=logger
-)
+# Sample data
+data = [{"field1": "value1"}, {"field2": "value2"}, {"field3": "value3"}]
 
-#Run migration
-data_integrator.run_migration(
-source="File",
-object_name="source_contact",
-destination_object="Contact",
-data_source_config={"file_path": "path/to/data.csv"}
-)
+# Process the data in batches
+batch_processor.process_batches(data)
+```
 
-logger.info("Data migration completed.")
+### Data Mapping
 
-## Running Tests
+Use the DataMapper class to map source fields to Salesforce fields:
 
-To run tests, navigate to the tests directory and use pytest:
-pytest tests/
+```python
+from sf_data_integration import DataMapper
 
-## Contributing
+# Initialize the mapper with a configuration file
+mapper = DataMapper(config_file="path/to/mapping_config.yaml")
 
-Fork the repository.
-Create a feature branch (git checkout -b feature/your_feature).
-Commit your changes (git commit -m 'Add new feature').
-Push to the branch (git push origin feature/your_feature).
-Open a pull request.
+# Map source data
+mapped_data = mapper.map_data(source_data)
+```
 
-## License
+### Logging
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+The package uses logging for debugging and process tracking. Logs are stored in the logs/ directory. Example:
 
-## Contact
+```python
+from sf_data_integration import setup_logger
 
-For questions or issues, please open an issue on GitHub or reach out to the repository owner.
+# Set up logger
+logger = setup_logger("integration_process", log_dir="logs")
+
+# Log an informational message
+logger.info("Data migration started.")
+```
+
+### Error Handling
+
+In case of errors, the package will log detailed messages and exceptions. The logs can be reviewed for troubleshooting.
+
+### Testing
+
+To ensure the functionality of the package, you can run the tests using pytest:
+
+```bash
+pytest
+```
+
+Tests are located in the tests/ directory and cover various components like connectors, batch processing, and data integration.
+
+### Contributing
+
+If you'd like to contribute to sf_data_integration, feel free to fork the repository, create a branch, and submit a pull request. Ensure that tests are included for any new features or bug fixes.
+
+### License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

@@ -1,7 +1,8 @@
-# This configuration file provides field mappings for different Salesforce objects.
-# Each Salesforce object has specific mappings for the fields coming from the source data.
+# mapping_config.yaml
 
-# Mapping for Salesforce Account object
+# Mapping configuration for Salesforce Data Cloud objects.
+# Each section defines mappings for a specific object, mapping CRM or other source fields to Salesforce fields.
+
 Account:
   source_account_name: Name
   source_account_id: External_Id__c
@@ -9,7 +10,6 @@ Account:
   source_phone: Phone
   source_website: Website
 
-# Mapping for Salesforce Contact object
 Contact:
   source_contact_name: Name
   source_email: Email
@@ -18,7 +18,6 @@ Contact:
   source_address: MailingAddress
   source_account_id: AccountId
 
-# Mapping for Salesforce Lead object
 Lead:
   source_lead_name: Name
   source_company: Company
@@ -27,7 +26,6 @@ Lead:
   source_status: Status
   source_lead_source: LeadSource
 
-# Mapping for Salesforce Opportunity object
 Opportunity:
   source_opportunity_name: Name
   source_close_date: CloseDate
@@ -35,7 +33,6 @@ Opportunity:
   source_account_id: AccountId
   source_amount: Amount
 
-# Example custom object mapping (if applicable)
 Custom_Object__c:
   source_field1: Custom_Field1__c
   source_field2: Custom_Field2__c

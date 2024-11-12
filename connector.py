@@ -1,42 +1,35 @@
-from simple_salesforce import Salesforce
-from typing import List, Dict, Any
+from sf_data_integration.logger import setup_logger
+from sf_data_integration.mapper import DataMapper
+from sf_data_integration.data_cloud_connector import DataCloudConnector
 import logging
 
-class SalesforceConnector:
-    def __init__(self, username: str, password: str, security_token: str, logger: logging.Logger):
-        """
-        Initialize the Salesforce connection and logger.
+class Connector:
+    def __init__(self, source_system, target_system, mapping_file='sf_data_integration/mapping_config.yaml'):
+        self.source_system = source_system
+        self.target_system = target_system
+        self.mapping_file = mapping_file
+        self.logger = setup_logger("connector", log_dir="sf_data_integration/logs")
+        self.mapper = DataMapper(self.mapping_file)
 
-        :param username: Salesforce username.
-        :param password: Salesforce password.
-        :param security_token: Salesforce security token.
-        :param logger: A configured logger instance for logging events and errors.
-        """
+    def fetch_data(self):
+        """Fetch data from the source system."""
+        data = self.source_system.get_data()
+        self.logger.info(f"Fetched {len(data)} records from source system.")
+        return data
+
+    def map_data(self, data):
+        """Map the fetched data to the target system's format using DataMapper."""
         try:
-            self.sf = Salesforce(username=username, password=password, security_token=security_token)
-            self.logger = logger
-            self.logger.info("Salesforce connection established successfully.")
+            mapped_data = self.mapper.map_data(data, self.target_system)
+            self.logger.info(f"Mapped {len(mapped_data)} records to target system format.")
+            return mapped_data
         except Exception as e:
-            self.logger.error(f"Failed to connect to Salesforce: {e}")
+            self.logger.error(f"Error during mapping: {e}")
+            raise
 
-    def insert_records(self, object_name: str, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Insert records into Salesforce for a specified object.
-
-        :param object_name: Salesforce object name (e.g., 'Contact', 'Account')
-        :param data: List of records as dictionaries.
-        :return: A list of responses from Salesforce for each inserted record.
-        """
-        self.logger.info(f"Inserting {len(data)} records into Salesforce object '{object_name}'.")
-        try:
-            # Use Salesforce Bulk API for efficient data insertion
-            result = self.sf.bulk.__getattr__(object_name).insert(data)
-            self.logger.info(f"Inserted {len(data)} records into {object_name}.")
-            return result
-        except Exception as e:
-            # Log error and return an empty list if insertion fails
-            self.logger.error(f"Failed to insert records: {e}")
-            return []
-    
-    def __repr__(self):
-        return "SalesforceConnector(username, password, security_token, logger)"
+    def migrate(self):
+        """Perform the migration from source to target system."""
+        data = self.fetch_data()
+        mapped_data = self.map_data(data)
+        self.target_system.insert_data(mapped_data)
+        self.logger.info("Migration completed.")

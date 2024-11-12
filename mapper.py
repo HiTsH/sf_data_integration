@@ -1,22 +1,24 @@
-from typing import Dict, Any
 import yaml
+from collections import defaultdict
 
 class DataMapper:
-    """
-    DataMapper handles mapping data fields from source to Salesforce-compatible formats.
-    """
+    def __init__(self, mapping_file):
+        self.mapping_file = mapping_file
+        self.mapping_data = self.load_mapping()
 
-    def __init__(self):
-        with open("mapping_config.yaml", 'r') as file:
-            self.mapping_config = yaml.safe_load(file)
+    def load_mapping(self):
+        """Load and parse the mapping configuration YAML file."""
+        with open(self.mapping_file, 'r') as file:
+            mapping = yaml.safe_load(file)
+        return mapping
 
-    def map_record(self, record: Dict[str, Any], target_object: str) -> Dict[str, Any]:
-        """
-        Map data fields to match Salesforce's requirements.
-
-        :param record: A single record from the source.
-        :param target_object: Salesforce target object (e.g., 'Contact').
-        :return: Mapped record ready for Salesforce insertion.
-        """
-        mapped_record = {self.mapping_config[target_object].get(k, k): v for k, v in record.items()}
-        return mapped_record
+    def map_data(self, data, target_system):
+        """Map data based on the loaded mapping configuration."""
+        mapped_data = []
+        for record in data:
+            mapped_record = {}
+            for source_field, target_field in self.mapping_data[target_system].items():
+                if source_field in record:
+                    mapped_record[target_field] = record[source_field]
+            mapped_data.append(mapped_record)
+        return mapped_data
