@@ -30,20 +30,20 @@ pip install .
 
 ## Requirements
 
-Python 3.6 or higher
-The following libraries are required:
-pandas==2.1.1
-simple-salesforce==1.11.4
-pytest==7.4.0
-PyYAML==6.0
-requests==2.28.2
-python-dotenv==1.0.0
-boto3==1.26.8
-google-cloud==0.34.0
-sqlalchemy==2.1.0
-psycopg2==2.9.3
-openpyxl==3.1.1
-loguru==0.6.0
+- Python 3.6 or higher
+- The following libraries are required:
+  - pandas==2.1.1
+  - simple-salesforce==1.11.4
+  - pytest==7.4.0
+  - PyYAML==6.0
+  - requests==2.28.2
+  - python-dotenv==1.0.0
+  - boto3==1.26.8
+  - google-cloud==0.34.0
+  - sqlalchemy==2.1.0
+  - psycopg2==2.9.3
+  - openpyxl==3.1.1
+  - loguru==0.6.0
 These dependencies are listed in requirements.txt, and you can install them via:
 
 ```bash
