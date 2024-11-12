@@ -9,7 +9,7 @@ setup(
         "simple-salesforce==1.11.4",  # Salesforce API wrapper
         "pytest==7.4.0",  # Testing framework
         "PyYAML==6.0",  # For YAML configuration files
-        "requests==2.28.2",  # For API requests, including Salesforce REST API
+        "requests==2.32.2",  # For API requests, including Salesforce REST API
         "python-dotenv==1.0.0",  # For environment variable management (if used)
         "boto3==1.26.8",  # For AWS SDK support (if applicable)
         "google-cloud==0.34.0",  # For Google Cloud SDK support (if applicable)

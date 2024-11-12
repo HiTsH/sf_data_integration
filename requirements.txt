@@ -14,7 +14,7 @@ pytest==7.4.0
 python-dotenv==1.0.0
 
 # Salesforce Data Cloud specific dependencies (for compatibility with Salesforce Data Cloud API and services)
-requests==2.28.2  # For making HTTP requests, especially with Salesforce REST API
+requests==2.32.2  # For making HTTP requests, especially with Salesforce REST API
 
 # For AWS / Google Cloud integrations (if the package includes connectors to cloud platforms)
 boto3==1.26.8   # For AWS SDK, if applicable
